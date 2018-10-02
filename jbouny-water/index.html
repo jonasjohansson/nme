@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="en">	
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>        
+		<title>A trip under the moonlight</title>
+		<style type="text/css">
+			body {
+				margin: 0px;
+				overflow: hidden;
+			}
+			
+			#env-selector {
+				position: absolute;
+				left: 5px;
+				top: 10px;
+				z-index: 1;
+			}
+			
+			#env-selector, #env-selector ul {
+				padding: 0px;
+				margin: 0px;
+			}
+			
+			#env-selector ul li {
+				display: inline;
+				background-color: #000;
+				color: #fff;
+				opacity: 0.6;
+				padding: 5px;
+				font-family: Arial;
+				font-size: medium;
+				cursor: pointer;
+				margin-right: 5px;
+				transition: all 1s;
+			}
+			
+			#env-selector ul li:hover {
+				background-color: #fff;
+				color: #000;
+			}
+			
+			#env-selector ul li.selected {
+				background-color: #3333cc;
+				color: #fff;
+			}
+		</style>        
+	</head>
+	<body>
+			
+		<div id="env-selector">
+			<ul>
+				<li key="night">Night</li>
+				<li key="morning">Morning</li>
+				<li key="day">Day</li>
+				<li key="cloudy">Cloudy</li>
+				<li key="sunset">Sunset</li>
+				<li key="interstellar">Interstellar</li>
+				<li key="apocalypse">Apocalypse</li>
+			</ul>
+		</div>
+
+		<script src="js/libs/three.min.js"></script>		
+		<script src="js/libs/dat.gui.min.js"></script>
+		<script src="js/libs/jquery-2.1.3.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/shaders/ScreenSpaceShader.js"></script>
+		<script src="js/shaders/FFTOceanShader.js"></script>
+		<script src="js/shaders/OceanShader.js"></script>
+		<script src="js/effects/MirrorRenderer.js"></script>
+		<script src="js/shaders/CloudShader2.js"></script>
+		<script src="js/loaders/OBJMTLLoader.js"></script>
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/effects/Ocean.js"></script>		
+		<script src="js/demo.js"></script>
+		
+		<script id="vertexShader" type="x-shader/x-vertex">
+			attribute vec3 color;
+
+			varying vec3 vColor;
+
+			void main() {
+				vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+
+				vColor = color;
+
+				gl_PointSize = 50.0 * abs( modelViewMatrix[1].y );
+				gl_Position = projectionMatrix * mvPosition;
+			}
+		</script>
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			uniform sampler2D texture;
+
+			varying vec3 vColor;
+
+			void main() {
+				vec4 startColor = vec4(vColor, 1.0);
+				vec4 finalColor;
+				gl_FragColor = texture2D( texture, gl_PointCoord );
+			}
+		</script>
+
+		<script>
+			var lastTime = ( new Date() ).getTime();
+
+			var WINDOW = {
+				ms_Width : 0,
+				ms_Height : 0,
+				ms_Callbacks : {
+					70: "WINDOW.ToggleFullScreen()", // Toggle fullscreen
+				},
+
+				Initialize : function () {
+					this.UpdateSize();
+
+					// Create callbacks from keyboard
+					document.onkeydown = function ( inEvent ) { WINDOW.CallAction( inEvent.keyCode ); };
+					window.onresize = function ( inEvent ) {
+						WINDOW.UpdateSize();
+						WINDOW.ResizeCallback( WINDOW.ms_Width, WINDOW.ms_Height );
+					};
+				},
+				
+				UpdateSize : function () {
+					this.ms_Width = window.innerWidth ;
+					this.ms_Height = window.innerHeight;
+				},
+				
+				CallAction : function ( inId ) {
+					if ( inId in this.ms_Callbacks ) {
+						eval( this.ms_Callbacks[inId] );
+						return false;
+					}
+				},
+				
+				ToggleFullScreen : function () {
+					if ( !document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement ) {
+						if ( document.documentElement.requestFullscreen ) {
+							document.documentElement.requestFullscreen();
+						}
+						else if ( document.documentElement.mozRequestFullScreen ) {
+							document.documentElement.mozRequestFullScreen();
+						}
+						else if (document.documentElement.webkitRequestFullscreen) {
+							document.documentElement.webkitRequestFullscreen( Element.ALLOW_KEYBOARD_INPUT );
+						}
+					}
+					else {
+						if ( document.cancelFullScreen ) {
+							document.cancelFullScreen();
+						}
+						else if ( document.mozCancelFullScreen ) {
+							document.mozCancelFullScreen();
+						}
+						else if ( document.webkitCancelFullScreen ) {
+							document.webkitCancelFullScreen();
+						}
+					}
+				},
+				ResizeCallback : function ( inWidth, inHeight ) { },
+			};
+
+			WINDOW.Initialize();
+			
+			DEMO.Initialize();
+
+			WINDOW.ResizeCallback = function ( inWidth, inHeight ) { DEMO.Resize( inWidth, inHeight ); };
+			DEMO.Resize( WINDOW.ms_Width, WINDOW.ms_Height );
+
+			var render = function () {
+
+				requestAnimationFrame( render );
+				DEMO.Update();
+
+			};
+
+			render();
+
+		</script>
+	</body>
+</html>
