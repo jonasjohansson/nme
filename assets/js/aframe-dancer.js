@@ -49,7 +49,7 @@ AFRAME.registerComponent('dancer', {
 
 		const pos = {
 			x: getRand(dist),
-			y: getRand(10, false),
+			y: getRand(15, false),
 			z: getRand(dist)
 		};
 
