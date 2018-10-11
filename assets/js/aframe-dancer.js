@@ -1,10 +1,9 @@
 AFRAME.registerComponent('dancer', {
-
 	schema: {
-		life: {default: 20000},
-		fade: {default: 2000},
-		intensity: {default: 0.5},
-		scale: {default: 2.4}
+		life: { default: 20000 },
+		fade: { default: 2000 },
+		intensity: { default: 0.5 },
+		scale: { default: 20 }
 	},
 
 	init() {
@@ -16,7 +15,6 @@ AFRAME.registerComponent('dancer', {
 		this.visibility = 0;
 
 		this.el.addEventListener('model-loaded', () => {
-
 			let model = this.el.components['gltf-model'].model;
 
 			let mesh = model.children[0].children[0];
@@ -29,7 +27,7 @@ AFRAME.registerComponent('dancer', {
 			material.needsUpdate = true;
 
 			self.el.setAttribute('animation-mixer', 'clip: *;');
-			self.el.components['animation-mixer'].mixer.update(5 + Math.random()*duration);
+			self.el.components['animation-mixer'].mixer.update(5 + Math.random() * duration);
 			// self.el.components['animation-mixer'].mixer.timeScale = 2;
 
 			self.el.object3D.scale.set(data.scale, data.scale, data.scale);
@@ -43,17 +41,15 @@ AFRAME.registerComponent('dancer', {
 
 		this.el.setAttribute('sound', 'loop: true');
 		this.el.setAttribute('sound', 'rolloffFactor: 0.25');
-
 	},
 
 	update() {
-
-		const dist = 40;
+		const dist = 300;
 		const deg = 360;
 
 		const pos = {
 			x: getRand(dist),
-			y: getRand(3,false),
+			y: getRand(10, false),
 			z: getRand(dist)
 		};
 
@@ -75,9 +71,7 @@ AFRAME.registerComponent('dancer', {
 
 		const sceneIntensity = this.el.sceneEl.components.drama.intensity;
 		const intensityDistance = Math.abs(sceneIntensity - this.data.intensity);
-		const visibility = intensityDistance < 0.3 ?
-			(0.3 - intensityDistance) / 0.3 :
-			0;
+		const visibility = intensityDistance < 0.3 ? (0.3 - intensityDistance) / 0.3 : 0;
 
 		if (visibility === 0 && this.visibility > 0) {
 			this.update();
@@ -94,7 +88,7 @@ AFRAME.registerComponent('dancer', {
 
 getRand = (val, neg = true) => {
 	let r = Math.random() < 0.5 ? -1 : 1;
-	if (neg == false){
+	if (neg == false) {
 		r = -1;
 	}
 	return Math.random() * val * r;
