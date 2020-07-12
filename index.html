@@ -24,7 +24,7 @@
 	<script src="https://unpkg.com/aframe-animation-component@^4.1.2/dist/aframe-animation-component.js"></script>
 
 	<script src="./assets/js/aframe-water.js"></script>
-	<script src="./assets/js/aframe-clouds.js"></script>
+	<!-- <script src="./assets/js/aframe-clouds.js"></script> -->
 	<script src="./assets/js/aframe-dancer.js"></script>
 	<script src="./assets/js/aframe-particles.js"></script>
 	<script src="./assets/js/aframe-drama.js"></script>
@@ -44,7 +44,8 @@
 		keyboard-controls
 		fog="type: exponential; near: 1; far: 200; density: 0.001; color: #000"
 		drama="speed: 1;"
-		vr-mode-ui="enabled: false">
+		vr-mode-ui="enabled: false"
+	>
 
 		<a-assets>
 			<a-asset-item id="pad1" src="assets/audio/vd-1-pad1.mp3" preload="auto" response-type="arraybuffer"></a-asset-item>
@@ -66,7 +67,6 @@
 			<a-asset-item id="hihat" src="assets/audio/vd-1-hihat.mp3" preload="auto" response-type="arraybuffer"></a-asset-item>
 			<a-asset-item id="flying_lead" src="assets/audio/vd-1-flying_lead.mp3" preload="auto" response-type="arraybuffer"></a-asset-item>
 			<a-asset-item id="cliff-1" src="./assets/models/cliff-1.glb"></a-asset-item>
-			<a-asset-item id="cliff-3" src="./assets/models/cliff-3.glb"></a-asset-item>
 			<a-asset-item id="cliff-4" src="./assets/models/cliff-4.glb"></a-asset-item>
 			<a-asset-item id="s4t12" src="./assets/models/S4T12.glb"></a-asset-item>
 		</a-assets>
@@ -90,25 +90,19 @@
 
 		<a-entity environment></a-entity>
 
-		<!-- <a-entity id="cliffs">
+		<a-entity id="cliffs">
 			<a-entity
-				position="-600 340 10"
-				scale="0.4 0.4 0.4"
+				position="-600 500 10"
+				scale="0.6 0.6 0.6"
 				gltf-model="#cliff-1"
 			></a-entity>
 			<a-entity
-				position="250 0 0"
-				rotation="0 180 0"
-				scale="6 6 6"
-				gltf-model="#cliff-3"
-			></a-entity>
-			<a-entity
-				position="245 0 -160"
+				position="450 0 -450"
 				rotation="0 90 0"
-				scale="6 6 6"
+				scale="40 40 40"
 				gltf-model="#cliff-4"
 			></a-entity>
-		</a-entity> -->
+		</a-entity>
 
 		<a-entity
 			light="type: ambient; color: #1c371f; intensity: 1;"></a-entity>
