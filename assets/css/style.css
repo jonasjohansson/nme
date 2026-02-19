@@ -34,7 +34,7 @@ a {
 h1 {
 	z-index:100;
 	width:120px;
-	box-sizing::border-box;
+	box-sizing: border-box;
 }
 
 h3 {
@@ -51,7 +51,6 @@ main {
  	overflow-y:scroll;
  	/*background-color:var(--bg);*/
 	padding:var(--base);
-	-webkit-overflow-scrolling:touch;
 	box-sizing:border-box;
     mix-blend-mode: difference;
 }
@@ -81,7 +80,7 @@ button {
 }
 
 body.loading a-scene {
-	/*opacity:0;*/
+	opacity:0;
 }
 
 body .fade {
@@ -98,9 +97,13 @@ body:not(.loading) .fade {
 }
 
 a-scene {
-	opacity:1;
+	opacity:0;
 	will-change:opacity;
-	/*transition:opacity 8000ms ease-in 2000ms;*/
+	transition:opacity 3s ease-in;
+}
+
+body:not(.loading) a-scene {
+	opacity:1;
 }
 
 body.entered main {

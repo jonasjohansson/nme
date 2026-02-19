@@ -14,6 +14,11 @@ AFRAME.registerComponent('dancer', {
 
 		this.visibility = 0;
 
+		// Smooth repositioning
+		this.targetPosition = new THREE.Vector3();
+		this.targetRotation = new THREE.Euler();
+		this.hasTarget = false;
+
 		this.el.addEventListener('model-loaded', () => {
 			let model = this.el.components['gltf-model'].model;
 
@@ -26,9 +31,12 @@ AFRAME.registerComponent('dancer', {
 			material.transparent = true;
 			material.needsUpdate = true;
 
+			// Emissive glow
+			material.emissive = new THREE.Color(0x334455);
+			material.emissiveIntensity = 0;
+
 			self.el.setAttribute('animation-mixer', 'clip: *;');
 			self.el.components['animation-mixer'].mixer.update(5 + Math.random() * duration);
-			// self.el.components['animation-mixer'].mixer.timeScale = 2;
 
 			self.el.object3D.scale.set(data.scale, data.scale, data.scale);
 			self.el.components.sound.stopSound();
@@ -36,32 +44,41 @@ AFRAME.registerComponent('dancer', {
 
 			self.material = material;
 
-			self.update();
+			self.setNewTarget();
+			// Set initial position instantly
+			self.el.object3D.position.copy(self.targetPosition);
+			self.el.object3D.rotation.copy(self.targetRotation);
+			self.hasTarget = false;
 		});
 
 		this.el.setAttribute('sound', 'loop: true');
 		this.el.setAttribute('sound', 'rolloffFactor: 0.25');
 	},
 
-	update() {
+	setNewTarget() {
 		const dist = 300;
 		const deg = 360;
 
-		const pos = {
-			x: getRand(dist),
-			y: getRand(15, false),
-			z: getRand(dist)
-		};
+		this.targetPosition.set(
+			getRand(dist),
+			getRand(15, false),
+			getRand(dist)
+		);
 
-		const rot = {
-			x: 0,
-			y: getRand(deg),
-			z: 0
-		};
+		this.targetRotation.set(
+			0,
+			getRand(deg),
+			0
+		);
 
-		this.el.object3D.position.set(pos.x, pos.y, pos.z);
-		this.el.object3D.rotation.set(rot.x, rot.y, rot.z);
-		// this.el.setAttribute('particles', `origin: ${pos.x} ${pos.y} ${pos.z};`);
+		this.hasTarget = true;
+	},
+
+	update() {
+		// Only set targets if material is loaded (model ready)
+		if (this.material) {
+			this.setNewTarget();
+		}
 	},
 
 	tick() {
@@ -74,21 +91,33 @@ AFRAME.registerComponent('dancer', {
 		const visibility = intensityDistance < 0.3 ? (0.3 - intensityDistance) / 0.3 : 0;
 
 		if (visibility === 0 && this.visibility > 0) {
-			this.update();
+			this.setNewTarget();
 		}
 
 		this.visibility = visibility;
 
 		this.material.visible = this.visibility !== 0;
 
+		// Emissive glow reactive to visibility
+		this.material.emissiveIntensity = this.visibility * 0.5;
+
+		// Smooth repositioning
+		if (this.hasTarget) {
+			const pos = this.el.object3D.position;
+			pos.lerp(this.targetPosition, 0.02);
+			if (pos.distanceTo(this.targetPosition) < 0.5) {
+				this.hasTarget = false;
+			}
+		}
+
 		this.el.components.sound.pool.children[0].gain.gain.value = this.visibility;
 		this.material.opacity = this.visibility;
 	}
 });
 
-getRand = (val, neg = true) => {
+const getRand = (val, neg = true) => {
 	let r = Math.random() < 0.5 ? -1 : 1;
-	if (neg == false) {
+	if (neg === false) {
 		r = -1;
 	}
 	return Math.random() * val * r;

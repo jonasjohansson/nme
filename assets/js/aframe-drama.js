@@ -1,7 +1,7 @@
 /**
  * Projects a value from one range to another
  */
-function cast(toUpper, toLower, fromUpper, fromLower, val) {
+const cast = function(toUpper, toLower, fromUpper, fromLower, val) {
 	if (toUpper === toLower) {
 		return toUpper;
 	}
@@ -18,7 +18,9 @@ AFRAME.registerComponent('drama', {
 		speed: {default: 1}
 	},
 
-	init() {},
+	init() {
+		this.intensity = 0;
+	},
 
 	tick() {
 		const value = Math.sin((this.el.sceneEl.time / 8000) - Math.PI);

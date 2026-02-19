@@ -1,12 +1,21 @@
 window.addEventListener('load', () => {
-	document.querySelector('a-scene').addEventListener('enter-vr', function () {
-	   	document.querySelector('#camera').setAttribute('camera','active:false');
-	   	document.querySelector('#ocean').parentNode.removeChild(document.querySelector('#ocean'));
-	   	document.querySelector('#camera-vr').setAttribute('camera','active:true');
+	const scene = document.querySelector('a-scene');
+	const camera = document.querySelector('#camera');
+
+	scene.addEventListener('loaded', () => {
+		setTimeout(() => {
+			document.body.classList.remove('loading');
+		}, 500);
 	});
-	document.querySelector('a-scene').addEventListener('exit-vr', function () {
-	   	document.querySelector('#camera').setAttribute('camera','active:true');
-	   	document.querySelector('#camera-vr').setAttribute('camera','active:false');
+
+	scene.addEventListener('enter-vr', () => {
+		if (camera) {
+			camera.setAttribute('camera', 'active:false');
+		}
+	});
+	scene.addEventListener('exit-vr', () => {
+		if (camera) {
+			camera.setAttribute('camera', 'active:true');
+		}
 	});
 });
-
