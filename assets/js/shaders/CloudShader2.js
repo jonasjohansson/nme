@@ -99,7 +99,8 @@ THREE.ShaderLib['cloud'] = {
 		'		gl_FragColor = vec4(gl_FragCoord.z, 1., 1., 1.);',
 		'	}',
 		'	else {',
-		'		gl_FragColor = vec4(t, t, t, o );',
+		'		float c = t * 0.15;',
+		'		gl_FragColor = vec4(c * 0.7, c * 0.8, c, o * 0.6);',
 
 		'	}',
 		'}'

@@ -1,14 +1,14 @@
-﻿/**
+/**
  * Original work:
  * @author David Li / http://david.li/waves/
  *
  * Three.js version:
  * @author Aleksandr Albert / http://www.routter.co.tt
- * 
+ *
  * Modified:
  * @author jbouny / https://github.com/fft-ocean
  */
- 
+
 // Author: Aleksandr Albert
 // Website: www.routter.co.tt
 
@@ -34,9 +34,6 @@
 
 
 THREE.ShaderLib['ocean_sim_vertex'] = {
-	varying: {
-		"vUV": { type: "v2" }
-	},
 	vertexShader: [
 		'varying vec2 vUV;',
 
@@ -48,12 +45,9 @@ THREE.ShaderLib['ocean_sim_vertex'] = {
 };
 THREE.ShaderLib['ocean_subtransform'] = {
 	uniforms: {
-		"u_input": { type: "t", value: null },
-		"u_transformSize": { type: "f", value: 512.0 },
-		"u_subtransformSize": { type: "f", value: 250.0 }
-	},
-	varying: {
-		"vUV": { type: "v2" }
+		"u_input": { value: null },
+		"u_transformSize": { value: 512.0 },
+		"u_subtransformSize": { value: 250.0 }
 	},
 	fragmentShader: [
 		//GPU FFT using a Stockham formulation
@@ -65,7 +59,7 @@ THREE.ShaderLib['ocean_subtransform'] = {
 		'uniform float u_subtransformSize;',
 
 		'varying vec2 vUV;',
-		
+
 		'vec2 multiplyComplex (vec2 a, vec2 b) {',
 			'return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);',
 		'}',
@@ -100,9 +94,9 @@ THREE.ShaderLib['ocean_subtransform'] = {
 };
 THREE.ShaderLib['ocean_initial_spectrum'] = {
 	uniforms: {
-		"u_wind": { type: "v2", value: new THREE.Vector2(10.0, 10.0) },
-		"u_resolution": { type: "f", value: 512.0 },
-		"u_size": { type: "f", value: 250.0 },
+		"u_wind": { value: new THREE.Vector2(10.0, 10.0) },
+		"u_resolution": { value: 512.0 },
+		"u_size": { value: 250.0 },
 	},
 	fragmentShader: [
 
@@ -114,7 +108,7 @@ THREE.ShaderLib['ocean_initial_spectrum'] = {
 		'uniform vec2 u_wind;',
 		'uniform float u_resolution;',
 		'uniform float u_size;',
-		
+
 		'float square (float x) {',
 			'return x * x;',
 		'}',
@@ -123,19 +117,15 @@ THREE.ShaderLib['ocean_initial_spectrum'] = {
 			'return sqrt(G * k * (1.0 + square(k / KM)));',
 		'}',
 
-		'float tanh (float x) {',
-			'return (1.0 - exp(-2.0 * x)) / (1.0 + exp(-2.0 * x));',
-		'}',
-
 		'void main (void) {',
 			'vec2 coordinates = gl_FragCoord.xy - 0.5;',
-			
+
 			'float n = (coordinates.x < u_resolution * 0.5) ? coordinates.x : coordinates.x - u_resolution;',
 			'float m = (coordinates.y < u_resolution * 0.5) ? coordinates.y : coordinates.y - u_resolution;',
-			
+
 			'vec2 K = (2.0 * PI * vec2(n, m)) / u_size;',
 			'float k = length(K);',
-			
+
 			'float l_wind = length(u_wind);',
 
 			'float Omega = 0.84;',
@@ -179,13 +169,10 @@ THREE.ShaderLib['ocean_initial_spectrum'] = {
 };
 THREE.ShaderLib['ocean_phase'] = {
 	uniforms: {
-		"u_phases": { type: "t", value: null },
-		"u_deltaTime": { type: "f", value: null },
-		"u_resolution": { type: "f", value: null },
-		"u_size": { type: "f", value: null },
-	},
-	varying: {
-		"vUV": { type: "v2" }
+		"u_phases": { value: null },
+		"u_deltaTime": { value: null },
+		"u_resolution": { value: null },
+		"u_size": { value: null },
 	},
 	fragmentShader: [
 
@@ -213,21 +200,18 @@ THREE.ShaderLib['ocean_phase'] = {
 			'float phase = texture2D(u_phases, vUV).r;',
 			'float deltaPhase = omega(length(waveVector)) * u_deltaTime;',
 			'phase = mod(phase + deltaPhase, 2.0 * PI);',
-		
+
 			'gl_FragColor = vec4(phase, 0.0, 0.0, 0.0);',
 		'}'
 	].join('\n')
 };
 THREE.ShaderLib['ocean_spectrum'] = {
 	uniforms: {
-		"u_size": { type: "f", value: null },
-		"u_resolution": { type: "f", value: null },
-		"u_choppiness": { type: "f", value: null },
-		"u_phases": { type: "t", value: null },
-		"u_initialSpectrum": { type: "t", value: null },
-	},
-	varying: {
-		"vUV": { type: "v2" }
+		"u_size": { value: null },
+		"u_resolution": { value: null },
+		"u_choppiness": { value: null },
+		"u_phases": { value: null },
+		"u_initialSpectrum": { value: null },
 	},
 	fragmentShader: [
 
@@ -279,24 +263,21 @@ THREE.ShaderLib['ocean_spectrum'] = {
 				'hX = vec2(0.0);',
 				'hZ = vec2(0.0);',
 			'}',
-		
+
 			'gl_FragColor = vec4(hX + multiplyByI(h), hZ);',
 		'}'
 	].join('\n')
 };
 THREE.ShaderLib['ocean_normals'] = {
 	uniforms: {
-		"u_displacementMap": { type: "t", value: null },
-		"u_resolution": { type: "f", value: null },
-		"u_size": { type: "f", value: null },
-	},
-	varying: {
-		"vUV": { type: "v2" }
+		"u_displacementMap": { value: null },
+		"u_resolution": { value: null },
+		"u_size": { value: null },
 	},
 	fragmentShader: [
 
 		'varying vec2 vUV;',
-		
+
 		'uniform sampler2D u_displacementMap;',
 		'uniform float u_resolution;',
 		'uniform float u_size;',
@@ -315,7 +296,7 @@ THREE.ShaderLib['ocean_normals'] = {
 			'vec3 topLeft = cross(top, left);',
 			'vec3 bottomLeft = cross(left, bottom);',
 			'vec3 bottomRight = cross(bottom, right);',
-		
+
 			'gl_FragColor = vec4(normalize(topRight + topLeft + bottomLeft + bottomRight), 1.0);',
 		'}'
 	].join('\n')
@@ -323,17 +304,17 @@ THREE.ShaderLib['ocean_normals'] = {
 
 THREE.UniformsLib[ "oceanfft" ] = {
 
-	"u_displacementMap": { type: "t", value: null },
-	"u_reflection": { type: "t", value: null },
-	"u_normalMap": { type: "t", value: null },
-	"u_geometrySize": { type: "f", value: null },
-	"u_size": { type: "f", value: null },
-	"u_mirrorMatrix": { type: "m4", value: null },
-	"u_cameraPosition": { type: "v3", value: null },
-	"u_skyColor": { type: "v3", value: null },
-	"u_oceanColor": { type: "v3", value: null },
-	"u_sunDirection": { type: "v3", value: null },
-	"u_exposure": { type: "f", value: null },
+	"u_displacementMap": { value: null },
+	"u_reflection": { value: null },
+	"u_normalMap": { value: null },
+	"u_geometrySize": { value: null },
+	"u_size": { value: null },
+	"u_mirrorMatrix": { value: null },
+	"u_cameraPosition": { value: null },
+	"u_skyColor": { value: null },
+	"u_oceanColor": { value: null },
+	"u_sunDirection": { value: null },
+	"u_exposure": { value: null },
 
 },
 
@@ -342,20 +323,20 @@ THREE.ShaderChunk[ "oceanfft_pars_vertex" ] = [
 	'uniform sampler2D u_displacementMap;',
 	'uniform float u_geometrySize;',
 	'uniform float u_size;',
-		
+
 ].join('\n');
 
 THREE.ShaderChunk[ "oceanfft_vertex" ] = [
 
 	'vec3 displacement = texture2D( u_displacementMap, worldPosition.xz * 0.002 ).rgb * ( u_geometrySize / u_size );',
 	'vec4 oceanfftWorldPosition = worldPosition + vec4( displacement, 0.0 );',
-	
+
 ].join('\n');
 
 THREE.ShaderChunk[ "oceanfft_pars_fragment" ] = [
-  
+
 ].join('\n');
 
 THREE.ShaderChunk[ "oceanfft_fragment" ] = [
-	
+
 ].join('\n');

@@ -1,14 +1,19 @@
 AFRAME.registerComponent('water', {
 	init() {
+		if (!THREE.Water || !THREE.Sky) {
+			console.warn('water component: THREE.Water or THREE.Sky not available');
+			return;
+		}
+
 		const scene = this.el.sceneEl.object3D;
 		const renderer = this.el.sceneEl.renderer;
 
-		const waterGeometry = new THREE.PlaneBufferGeometry(10000, 10000);
+		const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
 
-		light = new THREE.DirectionalLight(0xffffff, 0.8);
+		const light = new THREE.DirectionalLight(0xffffff, 0.8);
 		scene.add(light);
 
-		water = new THREE.Water(waterGeometry, {
+		const water = new THREE.Water(waterGeometry, {
 			textureWidth: 512,
 			textureHeight: 512,
 			waterNormals: new THREE.TextureLoader().load(
@@ -47,9 +52,9 @@ AFRAME.registerComponent('water', {
 			azimuth: 0.205
 		};
 
-		const cubeCamera = new THREE.CubeCamera(1, 20000, 256);
-		cubeCamera.renderTarget.texture.minFilter =
-			THREE.LinearMipMapLinearFilter;
+		const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
+		cubeRenderTarget.texture.minFilter = THREE.LinearMipmapLinearFilter;
+		const cubeCamera = new THREE.CubeCamera(1, 20000, cubeRenderTarget);
 
 		function updateSun() {
 			const theta = Math.PI * (parameters.inclination - 0.5);
@@ -77,6 +82,7 @@ AFRAME.registerComponent('water', {
 	},
 
 	tick() {
+		if (!this.water) return;
 		let speed = 480 - 240 * this.el.sceneEl.components.drama.intensity;
 		this.water.material.uniforms.time.value += 1.0 / speed;
 	}

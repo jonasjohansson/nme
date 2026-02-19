@@ -2,25 +2,25 @@ AFRAME.registerSystem('postprocessing', {
 	init() {
 		this.enabled = true;
 		this.sceneEl = this.el;
+		this.needsResize = true;
 
 		const renderer = this.sceneEl.renderer;
-		const size = renderer.getSize(new THREE.Vector2());
-		const w = size.x;
-		const h = size.y;
-		const hw = Math.floor(w / 2);
-		const hh = Math.floor(h / 2);
 
-		// Render targets
+		// Render targets (created at 1x1, resized on first render)
 		const rtParams = {
 			minFilter: THREE.LinearFilter,
 			magFilter: THREE.LinearFilter,
 			format: THREE.RGBAFormat,
 			type: THREE.HalfFloatType
 		};
-		this.sceneRT = new THREE.WebGLRenderTarget(w, h, rtParams);
-		this.brightRT = new THREE.WebGLRenderTarget(hw, hh, rtParams);
-		this.blurHRT = new THREE.WebGLRenderTarget(hw, hh, rtParams);
-		this.blurVRT = new THREE.WebGLRenderTarget(hw, hh, rtParams);
+		this.sceneRT = new THREE.WebGLRenderTarget(1, 1, rtParams);
+		this.brightRT = new THREE.WebGLRenderTarget(1, 1, rtParams);
+		this.blurHRT = new THREE.WebGLRenderTarget(1, 1, rtParams);
+		this.blurVRT = new THREE.WebGLRenderTarget(1, 1, rtParams);
+
+		// Track last known size to avoid redundant resizes
+		this._lastW = 0;
+		this._lastH = 0;
 
 		// Fullscreen triangle geometry
 		this.triangle = new THREE.BufferGeometry();
@@ -36,7 +36,7 @@ AFRAME.registerSystem('postprocessing', {
 		this.brightMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				tDiffuse: { value: null },
-				threshold: { value: 0.8 }
+				threshold: { value: 0.4 }
 			},
 			vertexShader: `
 				varying vec2 vUv;
@@ -65,7 +65,7 @@ AFRAME.registerSystem('postprocessing', {
 		this.blurHMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				tDiffuse: { value: null },
-				resolution: { value: new THREE.Vector2(hw, hh) }
+				resolution: { value: new THREE.Vector2(1, 1) }
 			},
 			vertexShader: `
 				varying vec2 vUv;
@@ -101,7 +101,7 @@ AFRAME.registerSystem('postprocessing', {
 		this.blurVMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				tDiffuse: { value: null },
-				resolution: { value: new THREE.Vector2(hw, hh) }
+				resolution: { value: new THREE.Vector2(1, 1) }
 			},
 			vertexShader: `
 				varying vec2 vUv;
@@ -138,7 +138,7 @@ AFRAME.registerSystem('postprocessing', {
 			uniforms: {
 				tScene: { value: null },
 				tBloom: { value: null },
-				strength: { value: 0.3 }
+				strength: { value: 0.5 }
 			},
 			vertexShader: `
 				varying vec2 vUv;
@@ -187,6 +187,23 @@ AFRAME.registerSystem('postprocessing', {
 				return;
 			}
 
+			// Check if render targets need resizing (handles DPR and window resize)
+			const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+			const w = size.x;
+			const h = size.y;
+			if (w !== self._lastW || h !== self._lastH) {
+				const hw = Math.floor(w / 2);
+				const hh = Math.floor(h / 2);
+				self.sceneRT.setSize(w, h);
+				self.brightRT.setSize(hw, hh);
+				self.blurHRT.setSize(hw, hh);
+				self.blurVRT.setSize(hw, hh);
+				self.blurHMaterial.uniforms.resolution.value.set(hw, hh);
+				self.blurVMaterial.uniforms.resolution.value.set(hw, hh);
+				self._lastW = w;
+				self._lastH = h;
+			}
+
 			// 1. Render scene to texture
 			renderer.setRenderTarget(self.sceneRT);
 			originalRender(scene, camera);
@@ -220,20 +237,5 @@ AFRAME.registerSystem('postprocessing', {
 			renderer.setRenderTarget(null);
 			originalRender(self.passScene, self.quadCamera);
 		};
-
-		// Handle window resize
-		window.addEventListener('resize', () => {
-			const newSize = renderer.getSize(new THREE.Vector2());
-			const nw = newSize.x;
-			const nh = newSize.y;
-			const nhw = Math.floor(nw / 2);
-			const nhh = Math.floor(nh / 2);
-			self.sceneRT.setSize(nw, nh);
-			self.brightRT.setSize(nhw, nhh);
-			self.blurHRT.setSize(nhw, nhh);
-			self.blurVRT.setSize(nhw, nhh);
-			self.blurHMaterial.uniforms.resolution.value.set(nhw, nhh);
-			self.blurVMaterial.uniforms.resolution.value.set(nhw, nhh);
-		});
 	}
 });

@@ -23,7 +23,6 @@ AFRAME.registerComponent('drama-layer', {
 		if (enabled !== this.enabled) {
 			const context = this.el.components.sound.listener.context;
 			const gain = this.el.components.sound.pool.children[0].gain.gain;
-			console.log('RAMP!', context.currentTime);
 			gain.linearRampToValueAtTime(enabled ? 1 : 0.000001, context.currentTime + 2);
 			// Gain.value = enabled ? 1 : 0
 
