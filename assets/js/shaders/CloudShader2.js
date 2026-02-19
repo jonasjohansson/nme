@@ -7,18 +7,18 @@
 
 THREE.ShaderLib['cloud'] = {
 	uniforms: {
-		'texture': { type: 't', value: null},
-		'time': { type: 'f', value: 1 },
-		'sharp': { type: 'f', value: 0.9 },
-		'cover': { type: 'f', value: 0.5 },
-		'clouds': { type: 'f', value: 1 },
-		'depth': { type: 'f', value: 0 }
+		'tNoise': { value: null},
+		'time': { value: 1 },
+		'sharp': { value: 0.9 },
+		'cover': { value: 0.5 },
+		'clouds': { value: 1 },
+		'depth': { value: 0 }
 	},
 	vertexShader: [
-		'uniform sampler2D texture;',
+		'uniform sampler2D tNoise;',
 		'uniform float time;',
 		'varying vec2 vUv;',
-		
+
 		'void main()',
 		'{',
 			'vUv = uv;',
@@ -41,12 +41,12 @@ THREE.ShaderLib['cloud'] = {
 		'uniform float cover;', // 0 = less clouds, 1 = more clouds
 							// substraction factor
 		'uniform float clouds;', // opacity
-		'uniform sampler2D texture;',
+		'uniform sampler2D tNoise;',
 		'varying vec2 vUv;',
 
 		// multi-chanel noise lookup
 		'vec3 noise3(vec2 p) {',
-		'	return texture2D(texture, p).xyz;',
+		'	return texture2D(tNoise, p).xyz;',
 		'}',
 
 		'vec3 fNoise(vec2 uv) {',
@@ -62,21 +62,21 @@ THREE.ShaderLib['cloud'] = {
 		'void main(void)',
 		'{',
 		'	vec2 uv = vUv;',
-			
+
 			// Formula: varience (smaller -> bigger cover) + speed (time) * direction
 			// normal thick clouds
 		'	vec3 ff1 = fNoise(uv * 0.01 + time * 0.00015 * vec2(-1., 1.));',
 
 			// fast small clouds
 		'	vec3 ff2 = fNoise(uv * 0.1 + time * 0.0005 * vec2(1., 1.));',
-			
+
 			// Different combinations of mixing
 		'	float t = ff1.x * 0.9 + ff1.y * 0.15;',
 		'	t = t * 0.99 + ff2.x * 0.01;',
 
 		'	float o = clamp ( length(uv * 2.0 - vec2(1., 1.)), 0., 1. );',
-			
-			// applies more transparency to horizon for 
+
+			// applies more transparency to horizon for
 			// to create illusion of distant clouds
 		'	o =  1. - o * o * o * o;',
 
@@ -96,12 +96,12 @@ THREE.ShaderLib['cloud'] = {
 				// tweak thresholds
 		'		if (o < 0.4 && t < 0.8) discard;',
 
-		'		gl_FragData[ 0 ] = vec4(gl_FragCoord.z, 1., 1., 1.);',
+		'		gl_FragColor = vec4(gl_FragCoord.z, 1., 1., 1.);',
 		'	}',
 		'	else {',
-		'		gl_FragData[ 0 ] = vec4(t, t, t, o );',
+		'		gl_FragColor = vec4(t, t, t, o );',
 
-		'	}',			
+		'	}',
 		'}'
 	].join('\n')
 };
@@ -109,7 +109,7 @@ THREE.ShaderLib['cloud'] = {
 function CloudShader( renderer, noiseSize ) {
 
 	noiseSize = noiseSize || 256;
-	
+
 	var cloudShader = THREE.ShaderLib['cloud'] ;
 
 	// Generate random noise texture
@@ -126,8 +126,8 @@ function CloudShader( renderer, noiseSize ) {
 	dt.magFilter = THREE.LinearFilter;
 	dt.minFilter = THREE.LinearFilter;
 	dt.needsUpdate = true;
-	
-	cloudShader.uniforms.texture.value = dt;
+
+	cloudShader.uniforms.tNoise.value = dt;
 
 	var noiseMaterial = new THREE.ShaderMaterial({
 		vertexShader: cloudShader.vertexShader,
@@ -147,7 +147,7 @@ function CloudShader( renderer, noiseSize ) {
 
 	sscene = new THREE.Scene();
 
-	smesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), noiseMaterial );
+	smesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), noiseMaterial );
 
 	sscene.add(smesh);
 
@@ -164,10 +164,41 @@ function CloudShader( renderer, noiseSize ) {
 			j * 20 * scale
 		).multiplyScalar(0.05);
 
-	};
+	}
 
-	this.cloudMesh = new THREE.Mesh( 
-		new THREE.ParametricGeometry(SkyDome, 5, 5),
+	// Build SkyDome geometry manually (THREE.ParametricGeometry removed from core)
+	var slices = 5;
+	var stacks = 5;
+	var vertices = [];
+	var indices = [];
+	var uvs = [];
+	for ( var iy = 0; iy <= stacks; iy++ ) {
+		var v = iy / stacks;
+		for ( var ix = 0; ix <= slices; ix++ ) {
+			var u = ix / slices;
+			var p = SkyDome( u, v );
+			vertices.push( p.x, p.y, p.z );
+			uvs.push( u, v );
+		}
+	}
+	for ( var iy = 0; iy < stacks; iy++ ) {
+		for ( var ix = 0; ix < slices; ix++ ) {
+			var a = ix + ( slices + 1 ) * iy;
+			var b = ix + ( slices + 1 ) * ( iy + 1 );
+			var c = ( ix + 1 ) + ( slices + 1 ) * ( iy + 1 );
+			var d = ( ix + 1 ) + ( slices + 1 ) * iy;
+			indices.push( a, b, d );
+			indices.push( b, c, d );
+		}
+	}
+	var skyDomeGeometry = new THREE.BufferGeometry();
+	skyDomeGeometry.setIndex( indices );
+	skyDomeGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+	skyDomeGeometry.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
+	skyDomeGeometry.computeVertexNormals();
+
+	this.cloudMesh = new THREE.Mesh(
+		skyDomeGeometry,
 		noiseMaterial
 	);
 
